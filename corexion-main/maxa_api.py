@@ -5,6 +5,7 @@ from typing import List, Any, Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 from pathlib import Path
@@ -24,6 +25,16 @@ app = FastAPI(
     title="Maxa Gen Engine API",
     description="API pour la génération d'épreuves mathématiques avec paramètres de contrôle clairs.",
     version="1.2.0"
+)
+
+# --- CONFIGURATION CORS POUR FLUTTER ---
+# Permet à votre application Flutter d'appeler l'API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # En production, remplacez par l'URL de votre app Flutter
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # --- MONTAGE DES FICHIERS STATIQUES ---

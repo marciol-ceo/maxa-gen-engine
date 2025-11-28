@@ -240,3 +240,4 @@ xxhash==3.6.0
 yarl==1.22.0
 zipp @ file:///home/conda/feedstock_root/build_artifacts/zipp_1749421620841/work
 zstandard==0.25.0
+gunicorn==21.2.0
