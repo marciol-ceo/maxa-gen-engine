@@ -1,0 +1,125 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{xfrac}
+
+% Configuration enumerate pour un espacement optimal
+\setlist[enumerate]{
+    itemsep=0.8em,
+    parsep=0.5em,
+    topsep=0.8em
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\thepage}
+\lhead{Épreuve de Mathématiques}
+
+\title{\textbf{Épreuve de Mathématiques} \\ Concours d'Ingénieur Statisticien}
+\author{}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section*{Instructions}
+Durée de l'épreuve : 4 heures. \\
+Les calculatrices sont autorisées. \\
+Toutes les réponses doivent être justifiées.
+
+\vspace{1cm}
+
+\section*{Exercice 1}
+
+Soit la fonction $f$ définie par $f(x) = \frac{x^2 + 4}{x + \cos x}$.
+\begin{enumerate}
+\item Calculer $\int_{0}^{1} \frac{1}{2+x^2} dx$.
+\item Donner la limite en $+\infty$ de la fonction $g(x)=\frac{3x - \sin x + \ln x}{2x + 2 - \ln (x^2+2)}$.
+\item Donner le comportement au voisinage de $x=0$ de la même fonction.
+\item Écrire le nombre complexe $w=3 - 3i$ sous forme trigonométrique.
+\item Donner le domaine de définition de la fonction 
+\[ h(x)=\ln \left(x+\sqrt{x^{2}+4}\right) . \]
+\item Donner une \exp ression simple de la dérivée de la fonction définie à la question précédente.
+\item Une étude montre qu'après un repas, 1 personne sur 4 prend un dessert, 1 personne sur 5 en prend 2, et les autres n'en prennent pas du tout. Deux personnes viennent de finir leur repas, et on note $Y$ le nombre de desserts consommés : pour toute valeur de $k$ pertinente, donner la probabilité pour que $Y$ soit égal à $k$ et en déduire l'espérance de $Y$.
+\item On considère la suite définie par $v_{n}=\sum_{k=1}^{n} \frac{1}{2n+k}$. Cette suite est-elle croissante? Est-elle convergente?
+\item On considère la suite définie par $v_{0}=1$ et $v_{n+1}=2v_{n}-3$ pour $n \geq 0$. Déterminer la nature de la suite définie par $w_{n}=v_{n}+2$, et en déduire l'étude de la convergence de la suite ( $v_{n}$ ).
+\item Résoudre l'équation $y^{4}+2y^{2}-3=0$ dans $\mathbf{R}$, puis dans $\mathbf{C}$.
+\end{enumerate}
+
+\vspace{1.5cm}
+
+\section*{Exercice 2}
+
+Considérons les fonctions $p$ et $q$ définies sur l'intervalle $[2,+\infty[$ par : $p(x)=-2x-\sqrt{x^{2}-4}$ et $q(x)=-2x+\sqrt{x^{2}-4}$.
+\begin{enumerate}
+\item Étudier les variations de $p$ et $q$ sur $[2,+\infty[$.
+\item Pour $m \in \mathbb{N}$, non nul, on pose : $L_{m}=\left[-2m+\sqrt{m^{2}-4},+\infty\left[\right.\right.$ et $\left.\left.K_{m}=\right]-\infty,-2m-\sqrt{m^{2}-4}\right]$. Montrer que ces deux suites $\left(L_{m}\right)$ et $\left(K_{m}\right)$ sont des suites monotones de segments emboîtés pour l'inclusion.
+\item Pour $m \in \mathbb{N}$, non nul, on pose : $p_{m}(x)=\sqrt{x^{2}+4mx+4}$. Donner l'ensemble de définition de $p_{m}(x)$ en fonction de $L_{m}$ et $K_{m}$, et en déduire l'ensemble de définition de la fonction numérique $\psi_{n}$ définie par : $\psi_{n}(x)=\left(\sum_{m=1}^{n} \sqrt{x^{2}+4mx+4}\right)-\sqrt{n^{2} x^{2}+4}$, où $n$ est un entier naturel strictement supérieur à 
+1. \item Calculer \operatorname{Lim}_{x \rightarrow+\infty}\left[p_{m}(x)-\sqrt{x^{2}+\frac{4}{n^{2}}}\right] et en déduire \operatorname{Lim}_{x \rightarrow+\infty} \psi_{n}(x).
+\end{enumerate}
+
+\vspace{1.5cm}
+
+\section*{Exercice 3}
+
+Calculer en fonction de $m$ (où $m$ est un entier strictement positif), l'\exp ression :
+
+\[ S(m)=\sum_{j=1}^{m-1}(m-j) j^2 \]
+\vspace{1.5cm}
+
+\section*{Exercice 4}
+
+Pour tout entier naturel strictement positif n, on pose : J_{n}=\int_{n}^{n+1} e^{-x^2} \cos x \, dx
+\begin{enumerate}
+\item Calculer J_{n}
+\item Montrer que ( J_{n} ) est une suite géométrique et calculer sa limite. Exercice n° 7 Dans un champ circulaire de rayon 50 mètres, il y a une mare dont la surface est inconnue. Pour estimer cette surface, on tire aléatoirement 300 fléchettes dans le champ et on constate que 60 fléchettes sont tombées dans la mare.
+\item Donner une estimation de la surface de la mare.
+\item Comment peut-on améliorer cette estimation?
+\end{enumerate}
+
+\vspace{1.5cm}
+
+\section*{Exercice 5}
+
+Soit l'équation suivante dans \mathbf{R} :
+\begin{enumerate}
+\item Résoudre l'équation $y^{2}-\mu y+\mu^{2}-3=0$, où \mu est un paramètre réel.
+\item On considère la fonction de la variable réelle $g(x)=x^{3}+3 x+2$ et deux réels $c$ et $d$ tels que $g(c)=g(d)$.
+(a) Montrer que $(c-d)\left(c^{2}+cd+d^{2}+3\\right)=0$.
+(b) En déduire que $c=d$.
+\end{enumerate}
+
+\vspace{1.5cm}
+
+\section*{Exercice 6}
+
+Le profil d'un pont suspendu est modélisé (représenté) par une fonction $g$ définie sur l'intervalle $[2,10]$ (unité de mesure en mètres) par : $g(x)=(c x+d) e^{-0.5x}$, où $c$ et $d$ sont deux entiers naturels. On donne $e \approx 2,7 ; e^{-2} \approx 0,14$ et $e^{-10} \approx 0$.
+\begin{enumerate}
+\item Seulement dans cette question $c=5$ et $d=2$. Étudier les variations de $g$ et sa convexité. Tracer son graphe.
+\item Déterminer la valeur de $d$ pour que la \tan gente au graphe de $g$ au point d'abscisse 2 soit horizontale.
+\item On souhaite de plus que le sommet du pont soit situé entre 5 et 5,5 mètres de haut. Déterminer la valeur de $c$ et représenter ce pont.
+\item Le sol sous le pont (partie entre le sol et le pont) sera recouvert par un artisan sur une seule face. Sur le devis proposé, l'artisan demande un forfait de 300 euros augmenté de 50 euros par mètre carré recouvert. Quel sera le montant du devis ?
+\end{enumerate}
+
+\vspace{1.5cm}
+
+\section*{Exercice 7}
+
+Une entreprise fabrique des montres connectées. Dans sa production, $4 \%$ des montres ne sont pas conformes (elles ont un défaut). Afin de détecter les montres défaillantes, l'entreprise met en place un contrôle qualité : ce contrôle permet de rejeter $95 \%$ des montres défaillantes, mais rejette malheureusement également $6 \%$ des montres en état de marche. Dans la suite, on note $R$ l'évènement «la montre est rejetée», et $D$ l'évènement «la montre est défaillante».
+\begin{enumerate}
+\item On choisit une montre au hasard dans cette production.
+(a) Calculer $\mathbb{P}(\bar{R} \cap D)$, c'est-à-dire la probabilité que la montre ne soit pas rejetée au contrôle qualité et qu'elle soit défaillante.
+(b) Quelle est la probabilité qu'il y ait une erreur de contrôle?
+(c) Quelle est la probabilité qu'elle ne soit pas rejetée par ce contrôle? À la suite du test, les montres qui sont détectées défaillantes sont détruites, et ne sortent donc pas de l'usine. L'entreprise fabrique 12000 montres chaque jour.
+\item Combien de montres sortent effectivement chaque jour de l'entreprise en moyenne? La production d'une montre coûte 25 euros. Chaque montre sortant de l'usine est vendue 100 euros, et on suppose que toutes les montres sont vendues. Cependant, l'entreprise, qui tient à sa réputation, promet de payer 180 euros aux malheureux clients qui auraient acheté une montre défectueuse.
+\item Combien rapporte en moyenne une montre à l'entreprise?
+\end{enumerate}
+
+\end{document}

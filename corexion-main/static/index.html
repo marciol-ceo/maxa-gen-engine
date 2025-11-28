@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maxa Gen Engine - Interface de Génération</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <h1>📐 Maxa Gen Engine</h1>
+                <p class="subtitle">Générateur d'épreuves mathématiques</p>
+            </div>
+            <div class="api-status">
+                <span class="status-indicator" id="apiStatus">●</span>
+                <span id="apiStatusText">Vérification...</span>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="tabs">
+            <button class="tab-button active" data-tab="single">
+                🎯 Exercice Unique
+            </button>
+            <button class="tab-button" data-tab="mixed">
+                📚 Épreuve Complète (Mixed)
+            </button>
+            <button class="tab-button" data-tab="single-ns">
+                📖 Épreuve (Single Namespace)
+            </button>
+            <button class="tab-button" data-tab="manual">
+                ⚙️ Génération Manuelle
+            </button>
+        </nav>
+
+        <!-- Content Sections -->
+        <main class="main-content">
+            
+            <!-- TAB 1: Exercice Unique -->
+            <section class="tab-content active" id="tab-single">
+                <div class="card">
+                    <h2>Générer un exercice unique</h2>
+                    <p class="description">Génère un seul exercice aléatoire depuis un namespace aléatoire</p>
+                    
+                    <div class="form-group">
+                        <label for="single-index">Nom de l'index Pinecone</label>
+                        <input type="text" id="single-index" value="gen-engine-index" placeholder="gen-engine-index">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="single-variations">Nombre de variations</label>
+                            <input type="number" id="single-variations" value="5" min="1" max="20">
+                            <span class="help-text">Par exercice (1-20)</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="single-temperature">Température</label>
+                            <input type="range" id="single-temperature" min="0" max="100" value="70" step="5">
+                            <span class="temp-value" id="single-temp-value">0.70</span>
+                            <span class="help-text">Créativité (0.0 = conservateur, 1.0 = créatif)</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="single-return-latex" checked>
+                            <span>Retourner le code LaTeX complet</span>
+                        </label>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="generateSingleExercise()">
+                        <span class="btn-text">🚀 Générer l'exercice</span>
+                        <span class="spinner" style="display: none;">⏳</span>
+                    </button>
+                </div>
+
+                <div class="result-container" id="result-single" style="display: none;">
+                    <div class="card result-card">
+                        <h3>✅ Résultat de la génération</h3>
+                        <div class="result-info">
+                            <span><strong>Source Chunk ID:</strong> <span id="single-chunk-id"></span></span>
+                        </div>
+                        <div class="result-actions">
+                            <button class="btn btn-secondary" onclick="downloadLatex('result-single')">
+                                📥 Télécharger LaTeX
+                            </button>
+                            <button class="btn btn-secondary" onclick="copyToClipboard('result-single')">
+                                📋 Copier
+                            </button>
+                        </div>
+                        <div class="latex-preview">
+                            <h4>Aperçu LaTeX:</h4>
+                            <pre><code id="single-latex-content"></code></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: Épreuve Complète (Mixed) -->
+            <section class="tab-content" id="tab-mixed">
+                <div class="card">
+                    <h2>Générer une épreuve complète (Mode Mixed)</h2>
+                    <p class="description">Génère une épreuve avec des exercices de TOUS les namespaces</p>
+                    
+                    <div class="form-group">
+                        <label for="mixed-index">Nom de l'index Pinecone</label>
+                        <input type="text" id="mixed-index" value="gen-engine-index" placeholder="gen-engine-index">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="mixed-variations">Nombre de variations</label>
+                            <input type="number" id="mixed-variations" value="5" min="1" max="20">
+                            <span class="help-text">Par exercice (1-20)</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="mixed-temperature">Température</label>
+                            <input type="range" id="mixed-temperature" min="0" max="100" value="70" step="5">
+                            <span class="temp-value" id="mixed-temp-value">0.70</span>
+                            <span class="help-text">Créativité du modèle</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="mixed-return-latex" checked>
+                            <span>Retourner le code LaTeX complet</span>
+                        </label>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="generateMixedEpreuve()">
+                        <span class="btn-text">🚀 Générer l'épreuve (Mixed)</span>
+                        <span class="spinner" style="display: none;">⏳</span>
+                    </button>
+                </div>
+
+                <div class="result-container" id="result-mixed" style="display: none;">
+                    <div class="card result-card">
+                        <h3>✅ Épreuve générée avec succès</h3>
+                        <div class="result-info">
+                            <span><strong>Mode:</strong> <span id="mixed-mode"></span></span>
+                            <span><strong>Nombre d'exercices:</strong> <span id="mixed-chunks-count"></span></span>
+                        </div>
+                        <div class="result-actions">
+                            <button class="btn btn-secondary" onclick="downloadLatex('result-mixed')">
+                                📥 Télécharger LaTeX
+                            </button>
+                            <button class="btn btn-secondary" onclick="copyToClipboard('result-mixed')">
+                                📋 Copier
+                            </button>
+                        </div>
+                        <div class="latex-preview">
+                            <h4>Aperçu LaTeX:</h4>
+                            <pre><code id="mixed-latex-content"></code></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: Épreuve Single Namespace -->
+            <section class="tab-content" id="tab-single-ns">
+                <div class="card">
+                    <h2>Générer une épreuve (Mode Single Namespace)</h2>
+                    <p class="description">Génère une épreuve avec des exercices d'UN SEUL namespace aléatoire</p>
+                    
+                    <div class="form-group">
+                        <label for="single-ns-index">Nom de l'index Pinecone</label>
+                        <input type="text" id="single-ns-index" value="gen-engine-index" placeholder="gen-engine-index">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="single-ns-variations">Nombre de variations</label>
+                            <input type="number" id="single-ns-variations" value="10" min="1" max="20">
+                            <span class="help-text">Par exercice (1-20)</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="single-ns-temperature">Température</label>
+                            <input type="range" id="single-ns-temperature" min="0" max="100" value="70" step="5">
+                            <span class="temp-value" id="single-ns-temp-value">0.70</span>
+                            <span class="help-text">Créativité du modèle</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="single-ns-return-latex" checked>
+                            <span>Retourner le code LaTeX complet</span>
+                        </label>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="generateSingleNsEpreuve()">
+                        <span class="btn-text">🚀 Générer l'épreuve (Single)</span>
+                        <span class="spinner" style="display: none;">⏳</span>
+                    </button>
+                </div>
+
+                <div class="result-container" id="result-single-ns" style="display: none;">
+                    <div class="card result-card">
+                        <h3>✅ Épreuve générée avec succès</h3>
+                        <div class="result-info">
+                            <span><strong>Mode:</strong> <span id="single-ns-mode"></span></span>
+                            <span><strong>Nombre d'exercices:</strong> <span id="single-ns-chunks-count"></span></span>
+                        </div>
+                        <div class="result-actions">
+                            <button class="btn btn-secondary" onclick="downloadLatex('result-single-ns')">
+                                📥 Télécharger LaTeX
+                            </button>
+                            <button class="btn btn-secondary" onclick="copyToClipboard('result-single-ns')">
+                                📋 Copier
+                            </button>
+                        </div>
+                        <div class="latex-preview">
+                            <h4>Aperçu LaTeX:</h4>
+                            <pre><code id="single-ns-latex-content"></code></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: Génération Manuelle -->
+            <section class="tab-content" id="tab-manual">
+                <div class="card">
+                    <h2>Génération manuelle (depuis chunks JSON)</h2>
+                    <p class="description">Génère du LaTeX à partir de vos propres chunks de métadonnées</p>
+                    
+                    <div class="form-group">
+                        <label for="manual-index">Nom de l'index Pinecone</label>
+                        <input type="text" id="manual-index" value="gen-engine-index" placeholder="gen-engine-index">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="manual-chunks">Liste de chunks (JSON)</label>
+                        <textarea id="manual-chunks" rows="10" placeholder='[{"id": "chunk1", "namespace": "ns1", ...}, ...]'></textarea>
+                        <span class="help-text">Format: Array JSON de chunks avec métadonnées</span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="manual-variations">Nombre de variations</label>
+                            <input type="number" id="manual-variations" value="5" min="1" max="20">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="manual-temperature">Température</label>
+                            <input type="range" id="manual-temperature" min="0" max="100" value="70" step="5">
+                            <span class="temp-value" id="manual-temp-value">0.70</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="manual-return-latex" checked>
+                            <span>Retourner le code LaTeX complet</span>
+                        </label>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="generateManual()">
+                        <span class="btn-text">🚀 Générer depuis chunks</span>
+                        <span class="spinner" style="display: none;">⏳</span>
+                    </button>
+                </div>
+
+                <div class="result-container" id="result-manual" style="display: none;">
+                    <div class="card result-card">
+                        <h3>✅ LaTeX généré avec succès</h3>
+                        <div class="result-actions">
+                            <button class="btn btn-secondary" onclick="downloadLatex('result-manual')">
+                                📥 Télécharger LaTeX
+                            </button>
+                            <button class="btn btn-secondary" onclick="copyToClipboard('result-manual')">
+                                📋 Copier
+                            </button>
+                        </div>
+                        <div class="latex-preview">
+                            <h4>Aperçu LaTeX:</h4>
+                            <pre><code id="manual-latex-content"></code></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Maxa Gen Engine v1.2.0 | Powered by FastAPI & Pinecone</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
