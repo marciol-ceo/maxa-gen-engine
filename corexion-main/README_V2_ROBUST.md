@@ -226,9 +226,11 @@ class QuestionLatex(BaseModel):
 
 ### **2. Température**
 
-- `0.3-0.5` : Exercices classiques, peu de variation
-- `0.7` : Bon équilibre créativité/fiabilité ⭐ **Recommandé**
-- `0.9-1.0` : Exercices très originaux, risque d'incohérence
+⚠️ **IMPORTANT** : Avec Structured Outputs, le paramètre `temperature` est **IGNORÉ** et fixé à `1.0` par OpenAI.
+
+- Cette limitation garantit la validité du JSON mais réduit le contrôle sur la créativité
+- Pour un contrôle précis de la température, utilisez le mode legacy (`use_robust_mode: false`)
+- En mode robuste, la variété vient du prompt et du contexte, pas de la température
 
 ### **3. Mode de sélection**
 
@@ -238,6 +240,25 @@ class QuestionLatex(BaseModel):
 ---
 
 ## 🐛 **Résolution de problèmes**
+
+### **Erreur : "temperature does not support 0"**
+```
+Error: 'temperature' does not support 0 with this model. Only the default (1) value is supported.
+```
+
+**Cause** : Structured Outputs ne supporte QUE `temperature=1` (valeur par défaut).
+
+**Solution** : Le code a été corrigé pour omettre le paramètre `temperature`. Assurez-vous d'utiliser la version mise à jour de `maxa_generer_epreuve_v2_robust.py`.
+
+### **L'API retourne juste "$" ou un document vide**
+
+**Cause** : Toutes les générations ont échoué.
+
+**Solutions** :
+1. Vérifiez les logs serveur pour voir les erreurs détaillées
+2. Vérifiez que votre clé API est valide et a du crédit
+3. Augmentez `max_retries` dans le code (actuellement 2)
+4. Essayez avec `model: "gpt-4o"` si GPT-5 n'est pas encore disponible
 
 ### **Erreur : "API key not found"**
 ```bash

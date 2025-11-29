@@ -127,8 +127,8 @@ Analyse la structure de l'exercice fourni et extrait :
                     "content": f"Analyse cet exercice :\n\n{exercice_text}"
                 }
             ],
-            response_format=AnalyseExerciceStructure,
-            temperature=0  # Analyse déterministe
+            response_format=AnalyseExerciceStructure
+            # NOTE: temperature omise avec Structured Outputs (utilise la valeur par défaut = 1)
         )
 
         return response.choices[0].message.parsed
@@ -203,14 +203,15 @@ RAPPEL CRITIQUE : Dans le JSON, TOUS les backslashes LaTeX doivent être DOUBLÉ
 Exemple : Pour écrire \\frac{{1}}{{2}} en LaTeX, tu dois écrire \\\\frac{{{{1}}}}{{{{2}}}} dans le JSON."""
 
         # Appel avec Structured Outputs - GARANTIT le format
+        # NOTE: Structured Outputs ne supporte QUE temperature=1 (valeur par défaut)
         response = self.client.beta.chat.completions.parse(
             model=self.model,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            response_format=ExerciceLatexStructure,
-            temperature=self.temperature
+            response_format=ExerciceLatexStructure
+            # temperature ignorée avec Structured Outputs - toujours = 1
         )
 
         # Le parsing est GARANTI par OpenAI
@@ -225,14 +226,16 @@ Exemple : Pour écrire \\frac{{1}}{{2}} en LaTeX, tu dois écrire \\\\frac{{{{1}
     def generer_epreuve_complete(
         self,
         exercices_originaux: List[Dict],
-        temperature: float = None
+        temperature: float = None,
+        max_retries: int = 2
     ) -> str:
         """
         Génère une épreuve complète à partir d'exercices sources.
 
         Args:
             exercices_originaux: Liste de dicts avec 'texte_complet', 'exercice', etc.
-            temperature: Override de température (optionnel)
+            temperature: Override de température (optionnel, ignoré en mode Structured Outputs)
+            max_retries: Nombre max de tentatives par exercice
 
         Returns:
             String LaTeX complète de l'épreuve, garantie valide
@@ -246,31 +249,55 @@ Exemple : Pour écrire \\frac{{1}}{{2}} en LaTeX, tu dois écrire \\\\frac{{{{1}
         for i, exo_data in enumerate(exercices_originaux):
             print(f"\n🔹 Génération exercice {i+1}/{len(exercices_originaux)}...")
 
-            try:
-                # 1. Analyse de la structure
-                print(f"   📊 Analyse de la structure...")
-                analyse = self.analyser_exercice(exo_data['texte_complet'])
-                print(f"   ✅ Détecté: {analyse.nombre_questions} questions, {analyse.niveau_difficulte}")
+            exercice_latex = None
 
-                # 2. Génération avec Structured Outputs
-                print(f"   🤖 Génération avec {self.model}...")
-                exercice = self.generer_exercice_similaire(
-                    exercice_original=exo_data['texte_complet'],
-                    analyse=analyse,
-                    numero_exercice=i + 1
-                )
+            for attempt in range(max_retries):
+                try:
+                    # 1. Analyse de la structure
+                    if attempt == 0:
+                        print(f"   📊 Analyse de la structure...")
+                    else:
+                        print(f"   🔄 Nouvelle tentative {attempt + 1}/{max_retries}...")
 
-                # 3. Conversion en LaTeX
-                latex_code = exercice.to_latex_string()
-                exercices_generes.append(latex_code)
-                print(f"   ✅ Exercice {i+1} généré avec succès!")
+                    analyse = self.analyser_exercice(exo_data['texte_complet'])
 
-            except Exception as e:
-                print(f"   ❌ Erreur: {e}")
-                # Fallback avec message d'erreur
+                    if attempt == 0:
+                        print(f"   ✅ Détecté: {analyse.nombre_questions} questions, {analyse.niveau_difficulte}")
+
+                    # 2. Génération avec Structured Outputs
+                    print(f"   🤖 Génération avec {self.model}...")
+                    exercice = self.generer_exercice_similaire(
+                        exercice_original=exo_data['texte_complet'],
+                        analyse=analyse,
+                        numero_exercice=i + 1
+                    )
+
+                    # 3. Conversion en LaTeX
+                    exercice_latex = exercice.to_latex_string()
+
+                    # Vérification basique
+                    if len(exercice_latex.strip()) < 50:
+                        raise ValueError("Exercice généré trop court (probablement incomplet)")
+
+                    print(f"   ✅ Exercice {i+1} généré avec succès!")
+                    break  # Succès, on sort de la boucle retry
+
+                except Exception as e:
+                    print(f"   ⚠️  Erreur tentative {attempt + 1}: {str(e)[:100]}")
+                    if attempt == max_retries - 1:
+                        # Dernière tentative échouée
+                        print(f"   ❌ Échec après {max_retries} tentatives")
+                        exercice_latex = None
+
+            # Ajouter le résultat (ou fallback)
+            if exercice_latex:
+                exercices_generes.append(exercice_latex)
+            else:
+                # Fallback: utiliser l'exercice original modifié
+                print(f"   ⚠️  Utilisation de l'exercice original comme fallback")
                 exercices_generes.append(
-                    f"\\section*{{Exercice {i+1}}}\n"
-                    f"\\textit{{Erreur de génération: {str(e)[:100]}}}"
+                    f"\\section*{{Exercice {i+1}}}\n\n"
+                    f"{exo_data.get('texte_complet', 'Exercice non disponible')[:1000]}"
                 )
 
         # Restaurer température

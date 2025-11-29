@@ -3,8 +3,13 @@ Script de test pour le mode robuste avec GPT-5 + Structured Outputs
 """
 
 import os
+import sys
 from dotenv import load_dotenv
 from maxa_generer_epreuve_v2_robust import RobustLatexGenerator
+
+# Fix encodage Windows
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding='utf-8')
 
 load_dotenv()
 
@@ -24,11 +29,12 @@ Soit la fonction $f$ définie par $f(x) = \\frac{x^2 + 1}{x - 2}$.
 def test_analyse():
     """Test de l'analyse structurelle."""
     print("=" * 60)
-    print("TEST 1 : Analyse structurelle avec GPT-5")
+    print("TEST 1 : Analyse structurelle avec GPT-4o")
     print("=" * 60)
 
     try:
-        generator = RobustLatexGenerator(model="gpt-4o", temperature=0.0)
+        # NOTE: temperature est ignorée avec Structured Outputs (toujours = 1)
+        generator = RobustLatexGenerator(model="gpt-4o", temperature=0.7)
         print(f"✓ Générateur initialisé avec {generator.model}\n")
 
         print("📊 Analyse en cours...")
