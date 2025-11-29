@@ -4,7 +4,7 @@ import uvicorn
 from typing import List, Any, Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
@@ -16,6 +16,7 @@ from maxa_get_meta import (
     get_random_metadata_from_one_random_namespace
 )
 from maxa_generer_epreuve import generate_new_epreuve_as_latex_string
+from maxa_generer_epreuve_v2_robust import generate_new_epreuve_as_latex_string_v2
 
 # Chargement des variables d'environnement (.env)
 load_dotenv()
@@ -23,9 +24,17 @@ load_dotenv()
 # Initialisation de l'application FastAPI
 app = FastAPI(
     title="Maxa Gen Engine API",
-    description="API pour la génération d'épreuves mathématiques avec paramètres de contrôle clairs.",
-    version="1.2.0"
+    description="API pour la génération d'épreuves mathématiques avec GPT-5 + Structured Outputs. Support de l'UTF-8 garanti.",
+    version="2.0.0"
 )
+
+# Middleware pour forcer UTF-8 dans toutes les réponses
+@app.middleware("http")
+async def add_utf8_header(request, call_next):
+    response = await call_next(request)
+    if "application/json" in response.headers.get("content-type", ""):
+        response.headers["content-type"] = "application/json; charset=utf-8"
+    return response
 
 # --- CONFIGURATION CORS POUR FLUTTER ---
 # Permet à votre application Flutter d'appeler l'API
@@ -49,9 +58,11 @@ class BaseRequest(BaseModel):
 
 # Modèle dédié aux paramètres du MOTEUR de génération
 class GenerationParams(BaseModel):
-    n_variations_per_exercice: int = Field(5, ge=1, description="Nombre de variations par exercice")
+    n_variations_per_exercice: int = Field(3, ge=1, description="Nombre de variations par exercice (legacy mode)")
     temperature: float = Field(0.7, ge=0.0, le=1.0, description="Créativité du modèle (0.0 à 1.0)")
     return_all_latex: bool = Field(True, description="Retourner le code LaTeX complet ou partiel")
+    model: str = Field("gpt-5", description="Modèle à utiliser: gpt-5, gpt-5-mini, gpt-4o")
+    use_robust_mode: bool = Field(True, description="Utiliser le mode robuste avec Structured Outputs (recommandé)")
 
 # Modèles spécifiques aux endpoints
 
@@ -119,15 +130,35 @@ def get_metadata_one_namespace(payload: BaseRequest):
 def generate_epreuve_manual(payload: GenerateFromChunksRequest):
     """
     Génère le LaTeX à partir d'une liste de chunks et des paramètres de génération.
+    Supporte le mode robuste (Structured Outputs) et le mode legacy.
     """
     try:
-        result = generate_new_epreuve_as_latex_string(
-            chunks_list=payload.chunks_list,
-            n_variations_per_exercice=payload.n_variations_per_exercice,
-            temperature=payload.temperature,
-            return_all_latex=payload.return_all_latex
-        )
-        return {"latex_result": result}
+        if payload.use_robust_mode:
+            # MODE ROBUSTE avec GPT-5 + Structured Outputs
+            result = generate_new_epreuve_as_latex_string_v2(
+                chunks_list=payload.chunks_list,
+                n_variations_per_exercice=payload.n_variations_per_exercice,
+                temperature=payload.temperature,
+                model=payload.model,
+                use_structured_outputs=True
+            )
+            return {
+                "latex_result": result,
+                "mode": "robust",
+                "model_used": payload.model
+            }
+        else:
+            # MODE LEGACY
+            result = generate_new_epreuve_as_latex_string(
+                chunks_list=payload.chunks_list,
+                n_variations_per_exercice=payload.n_variations_per_exercice,
+                temperature=payload.temperature,
+                return_all_latex=payload.return_all_latex
+            )
+            return {
+                "latex_result": result,
+                "mode": "legacy"
+            }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur de génération: {str(e)}")
 
@@ -135,10 +166,11 @@ def generate_epreuve_manual(payload: GenerateFromChunksRequest):
 def generate_epreuve_auto(payload: AutoGenerateRequest):
     """
     Génère une épreuve COMPLÈTE automatiquement.
+    Supporte le mode robuste (GPT-5 + Structured Outputs) et legacy.
     """
     try:
         pinecone_key = os.getenv("pinecone_api_key")
-        
+
         if payload.mode == "single":
             chunks = get_random_metadata_from_one_random_namespace(payload.index_name)
         else:
@@ -146,22 +178,40 @@ def generate_epreuve_auto(payload: AutoGenerateRequest):
                 index_name=payload.index_name,
                 pinecone_api_key=pinecone_key
             )
-            
+
         if not chunks:
             raise HTTPException(status_code=404, detail="Aucun chunk trouvé dans l'index.")
 
-        result = generate_new_epreuve_as_latex_string(
-            chunks_list=chunks,
-            n_variations_per_exercice=payload.n_variations_per_exercice,
-            temperature=payload.temperature,
-            return_all_latex=payload.return_all_latex
-        )
-        
-        return {
-            "mode_used": payload.mode,
-            "chunks_count": len(chunks),
-            "latex_result": result
-        }
+        if payload.use_robust_mode:
+            # MODE ROBUSTE
+            result = generate_new_epreuve_as_latex_string_v2(
+                chunks_list=chunks,
+                n_variations_per_exercice=payload.n_variations_per_exercice,
+                temperature=payload.temperature,
+                model=payload.model,
+                use_structured_outputs=True
+            )
+            return {
+                "mode_used": payload.mode,
+                "chunks_count": len(chunks),
+                "latex_result": result,
+                "generation_mode": "robust",
+                "model_used": payload.model
+            }
+        else:
+            # MODE LEGACY
+            result = generate_new_epreuve_as_latex_string(
+                chunks_list=chunks,
+                n_variations_per_exercice=payload.n_variations_per_exercice,
+                temperature=payload.temperature,
+                return_all_latex=payload.return_all_latex
+            )
+            return {
+                "mode_used": payload.mode,
+                "chunks_count": len(chunks),
+                "latex_result": result,
+                "generation_mode": "legacy"
+            }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur auto-generation: {str(e)}")
 
@@ -169,26 +219,44 @@ def generate_epreuve_auto(payload: AutoGenerateRequest):
 def generate_single_random_exercise(payload: SingleExerciseRequest):
     """
     Génère UN SEUL exercice aléatoire en utilisant les paramètres de génération spécifiés.
+    Supporte le mode robuste (GPT-5 + Structured Outputs).
     """
     try:
         chunks = get_random_metadata_from_one_random_namespace(payload.index_name)
-        
+
         if not chunks:
             raise HTTPException(status_code=404, detail="Impossible de récupérer des exercices.")
 
         selected_chunk = random.choice(chunks)
 
-        result = generate_new_epreuve_as_latex_string(
-            chunks_list=[selected_chunk],
-            n_variations_per_exercice=payload.n_variations_per_exercice,
-            temperature=payload.temperature,
-            return_all_latex=payload.return_all_latex
-        )
-
-        return {
-            "source_chunk_id": selected_chunk.get("id", "unknown"),
-            "latex_result": result
-        }
+        if payload.use_robust_mode:
+            # MODE ROBUSTE
+            result = generate_new_epreuve_as_latex_string_v2(
+                chunks_list=[selected_chunk],
+                n_variations_per_exercice=payload.n_variations_per_exercice,
+                temperature=payload.temperature,
+                model=payload.model,
+                use_structured_outputs=True
+            )
+            return {
+                "source_chunk_id": selected_chunk.get("id", "unknown"),
+                "latex_result": result,
+                "generation_mode": "robust",
+                "model_used": payload.model
+            }
+        else:
+            # MODE LEGACY
+            result = generate_new_epreuve_as_latex_string(
+                chunks_list=[selected_chunk],
+                n_variations_per_exercice=payload.n_variations_per_exercice,
+                temperature=payload.temperature,
+                return_all_latex=payload.return_all_latex
+            )
+            return {
+                "source_chunk_id": selected_chunk.get("id", "unknown"),
+                "latex_result": result,
+                "generation_mode": "legacy"
+            }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur single-exercise: {str(e)}")
 

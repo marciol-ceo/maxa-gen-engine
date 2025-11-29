@@ -8,6 +8,7 @@ from langchain_openai import ChatOpenAI
 from langchain.output_parsers import PydanticOutputParser
 from pydantic import BaseModel, Field
 from maxa_get_meta import get_random_metadata_from_one_random_namespace
+from maxa_latex_validator import LaTeXValidator, clean_latex_response
 
 
 
